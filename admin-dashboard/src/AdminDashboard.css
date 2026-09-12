@@ -1,0 +1,168 @@
+.admin-container {
+  min-height: 100vh;
+  background: #0f0f0f;
+  color: #fff;
+}
+
+.admin-header {
+  background: linear-gradient(135deg, #25d366 0%, #1eaa4f 100%);
+  padding: 20px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+}
+
+.admin-header h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #000;
+}
+
+.header-actions {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.user-info {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: bold;
+  color: #000;
+}
+
+.admin-nav {
+  display: flex;
+  gap: 10px;
+  padding: 16px 30px;
+  background: #1a1a1a;
+  border-bottom: 1px solid #333;
+}
+
+.nav-btn {
+  background: #333;
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s;
+}
+
+.nav-btn:hover {
+  background: #444;
+}
+
+.nav-btn.active {
+  background: #25d366;
+  color: #000;
+}
+
+.admin-content {
+  padding: 30px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.card {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.card h3 {
+  margin: 0 0 16px 0;
+  color: #25d366;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+}
+
+table th {
+  text-align: left;
+  padding: 12px;
+  background: #0f0f0f;
+  border-bottom: 2px solid #25d366;
+  color: #25d366;
+  font-weight: bold;
+}
+
+table td {
+  padding: 12px;
+  border-bottom: 1px solid #333;
+  color: #aaa;
+}
+
+table tr:hover {
+  background: #0f0f0f;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-completed {
+  background: rgba(37, 211, 102, 0.2);
+  color: #25d366;
+}
+
+.status-pending {
+  background: rgba(255, 152, 0, 0.2);
+  color: #ff9800;
+}
+
+.status-cancelled {
+  background: rgba(244, 67, 54, 0.2);
+  color: #f44336;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .admin-nav {
+    flex-wrap: wrap;
+    padding: 12px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-content {
+    padding: 16px;
+  }
+}
