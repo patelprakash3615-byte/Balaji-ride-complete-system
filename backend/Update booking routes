@@ -1,0 +1,411 @@
+const express = require('express');
+const Booking = require('../models/Booking');
+
+const router = express.Router();
+
+// Create booking - Customer
+router.post('/', async (req, res) => {
+  try {
+    const {
+      customerId,
+      rideType,
+      pickupLocation,
+      dropLocation,
+      distance,
+      estimatedFare
+    } = req.body;
+
+    if (!customerId || !rideType || !pickupLocation || !dropLocation) {
+      return res.status(400).json({
+        success: false,
+        message: 'Customer, ride type, pickup and drop location are required'
+      });
+    }
+
+    const bookingRef =
+      'BR-' + Date.now().toString(36).toUpperCase();
+
+    const booking = new Booking({
+      bookingRef,
+      customerId,
+      rideType,
+      pickupLocation,
+      dropLocation,
+      distance,
+      estimatedFare,
+      status: 'requested'
+    });
+
+    await booking.save();
+
+    res.status(201).json({
+      success: true,
+      booking,
+      message: 'Booking created successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Get all bookings
+router.get('/', async (req, res) => {
+  try {
+    const bookings = await Booking.find()
+      .populate('customerId')
+      .populate('driverId')
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      bookings
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Get booking by ID
+router.get('/:id', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id)
+      .populate('customerId')
+      .populate('driverId');
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      booking
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Driver accepts booking
+router.put('/:id/accept', async (req, res) => {
+  try {
+    const { driverId } = req.body;
+
+    if (!driverId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Driver ID is required'
+      });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (booking.status !== 'requested') {
+      return res.status(400).json({
+        success: false,
+        message: 'Booking is not available for acceptance'
+      });
+    }
+
+    booking.driverId = driverId;
+    booking.status = 'accepted';
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Booking accepted by driver'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Driver rejects booking
+router.put('/:id/reject', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (booking.status !== 'requested') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only requested bookings can be rejected'
+      });
+    }
+
+    booking.status = 'rejected';
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Booking rejected'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Driver starts trip
+router.put('/:id/start', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (booking.status !== 'accepted') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only accepted bookings can be started'
+      });
+    }
+
+    booking.status = 'in_progress';
+    booking.startTime = new Date();
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Trip started'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Driver updates live location
+router.put('/:id/location', async (req, res) => {
+  try {
+    const { latitude, longitude } = req.body;
+
+    if (latitude === undefined || longitude === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: 'Latitude and longitude are required'
+      });
+    }
+
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    booking.driverLocation = {
+      latitude,
+      longitude,
+      updatedAt: new Date()
+    };
+
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Driver location updated'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Complete trip
+router.put('/:id/complete', async (req, res) => {
+  try {
+    const { actualFare } = req.body;
+
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (booking.status !== 'in_progress') {
+      return res.status(400).json({
+        success: false,
+        message: 'Only active trips can be completed'
+      });
+    }
+
+    booking.status = 'completed';
+    booking.endTime = new Date();
+
+    if (actualFare !== undefined) {
+      booking.actualFare = actualFare;
+    }
+
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Trip completed successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Cancel booking
+router.put('/:id/cancel', async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    if (
+      booking.status === 'completed' ||
+      booking.status === 'cancelled'
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'This booking cannot be cancelled'
+      });
+    }
+
+    booking.status = 'cancelled';
+    booking.updatedAt = Date.now();
+
+    await booking.save();
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Booking cancelled successfully'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+// Update booking status
+router.put('/:id/status', async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    const allowedStatuses = [
+      'requested',
+      'accepted',
+      'in_progress',
+      'completed',
+      'cancelled',
+      'rejected'
+    ];
+
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid booking status'
+      });
+    }
+
+    const booking = await Booking.findByIdAndUpdate(
+      req.params.id,
+      {
+        status,
+        updatedAt: Date.now()
+      },
+      { new: true }
+    );
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: 'Booking not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      booking,
+      message: 'Booking status updated'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+
+module.exports = router;
