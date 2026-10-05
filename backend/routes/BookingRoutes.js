@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
       dropLocation,
       distance,
       estimatedFare,
-      status: 'pending'
+    status requested 
     });
 
     await booking.save();
