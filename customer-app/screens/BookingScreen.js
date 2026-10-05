@@ -37,7 +37,10 @@ const BookingScreen = ({ route, navigation }) => {
           [
             {
               text: 'Track',
-              onPress: () => navigation.navigate('Tracking'),
+     onPress: () =>
+  navigation.navigate('Tracking', {
+    bookingRef: newBookingRef,
+  }),         
             },
             {
               text: 'Done',
