@@ -58,4 +58,4 @@ router.post('/verify', async (req, res) => {
   }
 });
 
-module.module.exports = router;
+module.exports = router;
