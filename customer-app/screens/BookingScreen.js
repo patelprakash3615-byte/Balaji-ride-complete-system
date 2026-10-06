@@ -10,7 +10,7 @@ import {
 import axios from 'axios';
 
 // ⚠️ यहाँ अपने LIVE BACKEND का URL डालना है
-const API_URL = 'YOUR_BACKEND_URL/api/bookings';
+const API_URL = 'https://balaji-ride-complete-system.onrender.com/api/bookings';
 
 const BookingScreen = ({ route, navigation }) => {
   const {
