@@ -54,11 +54,22 @@ const BookingScreen = ({ route, navigation }) => {
 
       setBookingRef(newBookingRef);
 
+
+if (!customerId) {
+  Alert.alert(
+    'Error',
+    'Customer login information not found. Please login again.'
+  );
+  setLoading(false);
+  return;
+}
+
+const bookingData = {
       const bookingData = {
         bookingRef: newBookingRef,
 
         // अभी login system connect होने तक fallback
-        customerId: customerId || 'user123',
+        customerId: customerId,
 
         rideType: rideType,
 
