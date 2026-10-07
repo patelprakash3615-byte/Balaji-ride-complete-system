@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import * as Location from 'expo-location';
 import axios from 'axios';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const HomeScreen = ({ navigation }) => {
   const [pickup, setPickup] = useState('');
   const [drop, setDrop] = useState('');
@@ -59,10 +59,17 @@ const HomeScreen = ({ navigation }) => {
     const calculatedFare = parseFloat(distance) * rates[rideType];
     setFare(calculatedFare);
   };
+const bookRide = async () => {
+  if (!pickup || !drop || !distance) {
+    Alert.alert('Error', 'Please fill all fields');
+    return;
+  }
 
-  const bookRide = () => {
-    if (!pickup || !drop || !distance) {
-      Alert.alert('Error', 'Please fill all fields');
+  try {
+    const customerId = await AsyncStorage.getItem('customerId');
+
+    if (!customerId) {
+      Alert.alert('Error', 'Please login again');
       return;
     }
 
@@ -72,8 +79,14 @@ const HomeScreen = ({ navigation }) => {
       distance,
       rideType,
       fare,
+      customerId,
     });
-  };
+  } catch (error) {
+    console.log('Customer ID Error:', error);
+    Alert.alert('Error', 'Unable to get customer information');
+  }
+};
+  
 
   return (
     <ScrollView style={styles.container}>
