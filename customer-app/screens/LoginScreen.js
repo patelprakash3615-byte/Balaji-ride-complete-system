@@ -26,11 +26,27 @@ const LoginScreen = ({ navigation }) => {
         email,
         password,
       });
+if (response.data.success) {
+  await AsyncStorage.setItem(
+    'token',
+    response.data.token
+  );
 
-      if (response.data.success) {
-        // Store token and navigate
-        Alert.alert('Success', 'Login successful');
-        // navigation.replace('Home');
+  await AsyncStorage.setItem(
+    'customerId',
+    response.data.user.id
+  );
+
+  await AsyncStorage.setItem(
+    'customerName',
+    response.data.user.name
+  );
+
+  Alert.alert('Success', 'Login successful');
+
+  onLogin();
+}
+      
       }
     } catch (error) {
       Alert.alert('Error', 'Login failed');
